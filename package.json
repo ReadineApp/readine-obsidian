@@ -1,0 +1,50 @@
+{
+  "name": "readine-sync",
+  "version": "26.0608.1254",
+  "description": "One-way sync of Readine articles into Obsidian vault as Markdown with YAML frontmatter; auto-sync, conflict resolution, local-edit protection.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node version-bump.mjs && tsc -noEmit -skipLibCheck && node scripts/embed-wasm.mjs && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "readine",
+    "sync",
+    "rss"
+  ],
+  "author": "Readine",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USER/REPO.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@bokuweb/zstd-wasm": "^0.0.27",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.4.0",
+    "turndown": "^7.2.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^4.1.6",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "0.25.5",
+    "eslint": "^9.30.1",
+    "esbuild-plugin-inline-worker": "^0.1.1",
+    "eslint-plugin-obsidianmd": "^0.1.9",
+    "globals": "^14.0.0",
+    "jiti": "^2.6.1",
+    "obsidian": "^1.12.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vitest": "^4.1.6"
+  }
+}

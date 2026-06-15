@@ -1,0 +1,11 @@
+{
+	"id": "readine-sync",
+	"name": "Readine Sync",
+	"version": "26.0609.0913",
+	"minAppVersion": "1.6.6",
+	"description": "One-way sync of Readine articles into Obsidian vault as Markdown ot Html files; auto-sync, local-edit protection.",
+	"author": "Readine",
+	"authorUrl": "https://readine.app",
+	"isDesktopOnly": false,
+	"fundingUrl": "https://github.com/Readine/obsidian-readine"
+}
