@@ -144,8 +144,7 @@ export class ArticleBodyLoader {
 
         // Write to cache (fire-and-forget)
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await this.storage.write(cachePath, dictBuf as any);
+          await this.storage.write(cachePath, dictRes.arrayBuffer);
         } catch (err) {
           console.warn("[ArticleBodyLoader] dict cache write failed", err);
         }

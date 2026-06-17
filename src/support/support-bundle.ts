@@ -11,7 +11,7 @@
 // SupportBundleData - DTO returned by collectBundle()
 // SupportBundleDeps - DI bag wiring platform, auth, ring buffer, settings, version stamps
 // SupportBundle - class with collectBundle() and serialize()
-// PlatformLike - minimal platform slice used here (getUserAgent + isMobile + version stamps)
+// PlatformLike - minimal platform slice used here (getPlatformLabel + isMobile + version stamps)
 // END_MODULE_MAP
 
 import type { AuthService } from "../auth/auth-service";
@@ -26,7 +26,7 @@ import type { SettingsManager } from "../settings/settings-manager";
  */
 export interface PlatformLike {
   isMobile(): boolean;
-  getUserAgent(): string;
+  getPlatformLabel(): string;
 }
 
 /**
@@ -67,7 +67,6 @@ function logInfo(
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "info",
@@ -83,21 +82,25 @@ function logInfo(
 
 // START_BLOCK_OS_INFER
 /**
- * Cheap, regex-based OS classification. We don't need precision — support
- * staff will see the full userAgent string anyway. Buckets: macOS / iOS /
- * Android / Windows / Linux / unknown. Returned as a short label.
+ * OS classification via Obsidian Platform API. Relies on M-PLATFORM's
+ * Platform.* flags — no user-agent parsing.
  */
-function inferOs(ua: string): string {
-  if (!ua) return "unknown";
-  const lower = ua.toLowerCase();
-  if (lower.includes("iphone") || lower.includes("ipad") || lower.includes("ios")) {
-    return "iOS";
+function inferOs(platform: PlatformLike): string {
+  try {
+    const label = platform.getPlatformLabel();
+    if (!label) return "unknown";
+    if (platform.isMobile()) {
+      if (label.includes("iOS")) return "iOS";
+      if (label.includes("Android")) return "Android";
+      return "Mobile";
+    }
+    if (label.includes("MacOS")) return "macOS";
+    if (label.includes("Windows")) return "Windows";
+    if (label.includes("Linux")) return "Linux";
+    return "Desktop";
+  } catch {
+    return "unknown";
   }
-  if (lower.includes("android")) return "Android";
-  if (lower.includes("mac os") || lower.includes("macintosh")) return "macOS";
-  if (lower.includes("windows")) return "Windows";
-  if (lower.includes("linux")) return "Linux";
-  return "unknown";
 }
 // END_BLOCK_OS_INFER
 
@@ -141,7 +144,7 @@ export class SupportBundle {
   // END_CONTRACT: collectBundle
   collectBundle(): SupportBundleData {
     // START_BLOCK_COLLECT
-    const ua = this._safe(() => this.deps.platform.getUserAgent(), "");
+    const ua = this._safe(() => this.deps.platform.getPlatformLabel(), "");
     const isMobile = this._safe(() => this.deps.platform.isMobile(), false);
     const userId = this._safe(() => this.deps.auth.getUserId(), null);
     const apiToken = this._safe(() => this.deps.auth.getSessionId(), null);
@@ -157,7 +160,7 @@ export class SupportBundle {
     const bundle: SupportBundleData = {
       pluginVersion: this.deps.pluginVersion,
       obsidianVersion: this.deps.obsidianVersion,
-      os: inferOs(ua),
+      os: inferOs(this.deps.platform),
       userAgent: ua,
       isMobile,
       userId: userId === null ? null : (apiToken ? userId + '/' + apiToken.slice(-4) : userId),

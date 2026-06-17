@@ -6,9 +6,6 @@ import {ApiClientLogsBase, ApiClientLogsBaseConfiguration} from './base_logs';
 // </auto-generated>
 //----------------------
 
-/* tslint:disable */
-/* eslint-disable */
-// ReSharper disable InconsistentNaming
 
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
 import { Observable, from as _observableFrom, throwError as _observableThrow, of as _observableOf } from 'rxjs';

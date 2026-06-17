@@ -144,8 +144,7 @@ class VaultFolderSuggest extends AbstractInputSuggest<string> {
   renderSuggestion(value: string, el: HTMLElement): void {
     el.setText(value);
     if (value.startsWith("{")) {
-      el.style.opacity = "0.65";
-      el.style.fontStyle = "italic";
+      el.setCssStyles({ opacity: "0.65", fontStyle: "italic" });
     }
   }
 
@@ -193,7 +192,6 @@ function logInfo(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "debug",
@@ -213,7 +211,6 @@ function logWarn(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",
@@ -470,7 +467,7 @@ export class ReadineSettingTab extends PluginSettingTab {
     this._progressEl = container.createDiv({ cls: "readine-sync-progress" });
     this._progressBarEl = this._progressEl.createDiv({ cls: "readine-sync-progress-bar", attr: { style: "width:0%" } });
     this._progressTextEl = this._progressEl.createDiv({ cls: "readine-sync-progress-text" });
-    this._progressEl.style.display = "none";
+    this._progressEl.setCssStyles({ display: "none" });
 
     // Subscribe to orchestrator progress events.
     const { i18n } = this.deps;
@@ -484,7 +481,7 @@ export class ReadineSettingTab extends PluginSettingTab {
   private _updateProgress(event: SyncProgressEvent, i18n: I18n): void {
     if (!this._progressEl || !this._progressTextEl) return;
 
-    this._progressEl.style.display = "block";
+    this._progressEl.setCssStyles({ display: "block" });
 
     // Translate the message key.
     this._progressTextEl.textContent = i18n.t(event.messageKey, event.params);
@@ -520,7 +517,7 @@ export class ReadineSettingTab extends PluginSettingTab {
     }
 
     if (this._progressBarEl) {
-      this._progressBarEl.style.width = `${pct}%`;
+      this._progressBarEl.setCssStyles({ width: `${pct}%` });
     }
 
     if (event.phase === "complete" || event.phase === "failed") {
@@ -625,8 +622,8 @@ export class ReadineSettingTab extends PluginSettingTab {
     // Row 2: full-width input
     let textInputEl: HTMLInputElement | null = null;
     const row = new Setting(container);
-    if (row.infoEl) row.infoEl.style.display = "none";
-    if (row.controlEl) row.controlEl.style.width = "100%";
+    if (row.infoEl) row.infoEl.setCssStyles({ display: "none" });
+    if (row.controlEl) row.controlEl.setCssStyles({ width: "100%" });
 
     row.addText((input) => {
       textInputEl = input.inputEl;
@@ -638,8 +635,7 @@ export class ReadineSettingTab extends PluginSettingTab {
     });
 
     const inputEl = textInputEl! as HTMLInputElement;
-    inputEl.style.flex = "1 1 auto";
-    inputEl.style.minWidth = "150px";
+    inputEl.setCssStyles({ flex: "1 1 auto", minWidth: "150px" });
     new VaultFolderSuggest(this.app, inputEl);
   }
 
@@ -807,13 +803,11 @@ export class ReadineSettingTab extends PluginSettingTab {
 
     // Row 2: full-width textarea (no resize)
     const row = new Setting(container);
-    if (row.infoEl) row.infoEl.style.display = "none";
-    if (row.controlEl) row.controlEl.style.width = "100%";
+    if (row.infoEl) row.infoEl.setCssStyles({ display: "none" });
+    if (row.controlEl) row.controlEl.setCssStyles({ width: "100%" });
 
     row.addTextArea((input) => {
-      input.inputEl.style.width = "100%";
-      input.inputEl.style.resize = "none";
-      input.inputEl.style.minHeight = "120px";
+      input.inputEl.setCssStyles({ width: "100%", resize: "none", minHeight: "120px" });
       input
         .setValue(settings.get("fileTemplate"))
         .onChange((value) => {

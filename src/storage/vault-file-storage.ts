@@ -43,7 +43,6 @@ function logWarn(
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",

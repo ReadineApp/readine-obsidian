@@ -60,7 +60,6 @@ function logInfo(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "info",
@@ -80,7 +79,6 @@ function logWarn(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",
@@ -108,8 +106,7 @@ function showNotice(deps: CommandsDeps, message: string): void {
     return;
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    new Notice(message);
+    void new Notice(message);
   } catch {
     // In headless test envs without DOM Notice may throw; ignore.
   }

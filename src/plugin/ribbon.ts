@@ -74,7 +74,6 @@ function logInfo(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "info",
@@ -94,7 +93,6 @@ function logWarn(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",
@@ -119,8 +117,7 @@ function showNotice(deps: RibbonDeps, message: string): void {
     return;
   }
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    new Notice(message);
+    void new Notice(message);
   } catch {
     // In headless test envs without DOM Notice may throw; ignore.
   }
@@ -201,22 +198,22 @@ export function registerRibbon(plugin: Plugin, deps: RibbonDeps): HTMLElement {
     const nb = deps.notificationsBadge;
     // Obsidian ribbon icon element may not have position:relative —
     // without it, the absolutely-positioned badge lands off-screen.
-    iconEl.style.position = "relative";
+    iconEl.setCssStyles({ position: "relative" });
     badgeEl = iconEl.createEl("span", { cls: BADGE_CLASS });
 
     const updateBadge = (): void => {
       if (!badgeEl) return;
       const enabled = nb.getNotificationsBadge();
       if (!enabled) {
-        badgeEl.style.display = "none";
+        badgeEl.setCssStyles({ display: "none" });
         return;
       }
       const count = nb.getUnreadCount();
       if (count > 0) {
         badgeEl.textContent = count > 99 ? "99+" : String(count);
-        badgeEl.style.display = "";
+        badgeEl.setCssStyles({ display: "" });
       } else {
-        badgeEl.style.display = "none";
+        badgeEl.setCssStyles({ display: "none" });
       }
     };
 

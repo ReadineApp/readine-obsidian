@@ -6,9 +6,6 @@ import {ApiClientBase, ApiClientBaseConfiguration} from './base';
 // </auto-generated>
 //----------------------
 
-/* eslint-disable */
-// ReSharper disable InconsistentNaming
-
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
 import { Observable, from as _observableFrom, throwError as _observableThrow, of as _observableOf } from 'rxjs';
 import { Injectable, Inject, Optional, InjectionToken, HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from './angular-compat';

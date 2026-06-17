@@ -1,6 +1,6 @@
 // START_MODULE_CONTRACT
 // MODULE: M-PLATFORM-UNPACKER
-// PURPOSE: IUnpacker implementation for web. Spawns a single Web Worker hosting @bokuweb/zstd-wasm; transfers Uint8Array buffers to the worker (transfer-list), keys callbacks by reqId, and supports a 'wasStopped' marker to drop in-flight image jobs. Throttles image work to ≤20 concurrent via a 300 ms timer that drains the queue. Registers the worker with ErrorHandlerService for crash propagation.
+// PURPOSE: IUnpacker implementation for web (also used as the iOS fallback for small articles). Spawns a single Web Worker hosting @bokuweb/zstd-wasm; transfers Uint8Array buffers to the worker (transfer-list), keys callbacks by reqId, and supports a 'wasStopped' marker to drop in-flight image jobs. Throttles image work to ≤20 concurrent via a 300 ms timer that drains the queue. Registers the worker with ErrorHandlerService for crash propagation.
 // SCOPE: src/app/platform-specific/unpacker/unpack.service.web.ts (file-level slice of M-PLATFORM-UNPACKER)
 // DEPENDS: M-CORE-ERROR-PIPELINE, M-PERSIST-UNPACKER
 // ROLE: RUNTIME

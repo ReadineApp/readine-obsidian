@@ -62,7 +62,7 @@ export interface ErrorMsgForSend {
  * can stub without importing the real `obsidian` mock.
  */
 export interface PlatformLike {
-  getUserAgent(): string;
+  getPlatformLabel(): string;
 }
 
 /**
@@ -103,7 +103,6 @@ function logInfo(
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "info",
@@ -169,7 +168,6 @@ export class ErrorHandler {
     // then capture into our pipeline.
     this.originalConsoleError = console.error;
     const orig = this.originalConsoleError;
-    // eslint-disable-next-line no-console
     console.error = (...args: unknown[]): void => {
       // Always run the original first — otherwise devtools / structured-log
       // tests downstream lose their stream.
@@ -235,7 +233,6 @@ export class ErrorHandler {
     if (!this.registered) return;
 
     if (this.originalConsoleError) {
-      // eslint-disable-next-line no-console
       console.error = this.originalConsoleError;
       this.originalConsoleError = null;
     }
@@ -356,7 +353,7 @@ export class ErrorHandler {
         message: msg.message,
         src: msg.src,
         thread: msg.thread,
-        userAgent: this.deps.platform.getUserAgent(),
+        userAgent: this.deps.platform.getPlatformLabel(),
       });
     } catch {
       // Ring-buffer failures are non-fatal; the message still goes to messages$.

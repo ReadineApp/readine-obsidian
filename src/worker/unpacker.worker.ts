@@ -30,8 +30,9 @@ function wasmBytes(): Uint8Array {
 
 const stopper = new Set<string>();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(init as any)(wasmBytes()).then(() => {
+// WASM init requires casting init to match runtime signature.
+// The library types may not reflect the actual exported function shape.
+(init as unknown as (bytes: Uint8Array) => Promise<void>)(wasmBytes()).then(() => {
   self.addEventListener('message', ({ data }) => {
     const id = data['id'] as string;
     const action = data['action'] as string;

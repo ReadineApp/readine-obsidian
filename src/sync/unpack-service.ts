@@ -11,11 +11,8 @@
 // UnpackService - class: unpack(id, data, dict?) → Promise<string>; terminate()
 // END_MODULE_MAP
 
-// esbuild-plugin-inline-worker intercepts this import and returns a Worker constructor function.
-// TS and vitest see the default export as null (fallback in the worker file).
 // esbuild-plugin-inline-worker intercepts this import and replaces it with
-// a Worker constructor function (ignoring the actual default export).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// a Worker constructor function (ignoring the actual default export of `null`).
 import createWorkerTs from "../worker/unpacker.worker.ts";
 const createWorker: () => Worker = (createWorkerTs ||
   (() => { throw new Error("Worker not available in this environment"); })) as unknown as () => Worker;

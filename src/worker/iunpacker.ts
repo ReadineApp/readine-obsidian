@@ -1,6 +1,6 @@
 // START_MODULE_CONTRACT
 // MODULE: M-PLATFORM-UNPACKER
-// PURPOSE: DI token + IUnpacker contract for zstd decompression of article HTML and preview images. 
+// PURPOSE: DI token + IUnpacker contract for zstd decompression of article HTML and preview images. Implementations are runtime-bound by PlatformSpecificModule (Capacitor native plugin on Android, Electron IPC bridge to native zstd on desktop, @bokuweb/zstd-wasm web worker on PWA + iOS).
 // SCOPE: src/app/platform-specific/unpacker/iunpacker.ts (file-level slice of M-PLATFORM-UNPACKER)
 // DEPENDS: M-CORE-ERROR-PIPELINE, M-PERSIST-UNPACKER
 // ROLE: TYPES

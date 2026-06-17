@@ -7,11 +7,12 @@ export default [
   {
     ignores: [
       "main.js",
-      "src/api/client-v1-0.ts",
-      "src/api/client-v1-0-logs.ts",
+      "src/api/clientV1_0.ts",
+      "src/api/clientV1_0.Logs.ts",
       "node_modules/**",
       "dist/**",
       "**/*.test.ts",
+      "**/__mocks__/**",
     ],
   },
   js.configs.recommended,

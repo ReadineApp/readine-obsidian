@@ -29,7 +29,8 @@ import { LogRingBuffer } from "./logs/log-ring-buffer";
 import { getConnection, onConnectionChange, type UnsubscribeFn } from "./network/network-detect";
 import { isAllowed } from "./network/network-gate";
 import {
-  getUserAgent,
+  getPlatformLabel as getPlatLabel,
+  getDeviceInfo,
   isMobile,
 } from "./platform/platform";
 import { getDefaults } from "./settings/settings-defaults";
@@ -83,7 +84,6 @@ function logInfo(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "debug",
@@ -103,7 +103,6 @@ function logWarn(
   requirement: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",
@@ -173,7 +172,7 @@ export default class ReadinePlugin extends Plugin {
     this.ringBuffer = new LogRingBuffer();
     this.errorHandler = new ErrorHandler({
       ringBuffer: this.ringBuffer,
-      platform: { getUserAgent },
+      platform: { getPlatformLabel: getPlatLabel },
     });
     this.errorHandler.register();
     logInfo(
@@ -255,7 +254,7 @@ export default class ReadinePlugin extends Plugin {
       handler: this.errorHandler,
       logsClient: this.logsClient,
       auth: this.authService,
-      platform: { getUserAgent, isMobile },
+      platform: { getPlatformLabel: getPlatLabel, getDeviceInfo, isMobile },
       apiVersion: API_VERSION,
     });
     this.errorSender.register();
@@ -300,10 +299,11 @@ export default class ReadinePlugin extends Plugin {
     // For per-article resolution using Obsidian's own logic, consider:
     //   await app.fileManager.getAvailablePathForAttachment("_.png", articlePath)
     // (requires async per-article resolution; the string heuristic above matches Obsidian's behavior)
+    const vaultConfig = this.app.vault as unknown as { getConfig?: (key: string) => unknown };
     const linkPrefs = {
-      useMarkdownLinks: (this.app.vault as any).getConfig?.("useMarkdownLinks") ?? false,
-      newLinkFormat: (this.app.vault as any).getConfig?.("newLinkFormat") ?? "shortest",
-      attachmentFolderPath: (this.app.vault as any).getConfig?.("attachmentFolderPath") ?? "",
+      useMarkdownLinks: vaultConfig.getConfig?.("useMarkdownLinks") ?? false,
+      newLinkFormat: vaultConfig.getConfig?.("newLinkFormat") ?? "shortest",
+      attachmentFolderPath: vaultConfig.getConfig?.("attachmentFolderPath") ?? "",
     } as import("./sync/base64-extractor").ObsidianLinkPrefs;
 
     const vaultWriter = new VaultWriter({ storage: this.storage, linkPrefs });
@@ -384,7 +384,7 @@ export default class ReadinePlugin extends Plugin {
     });
 
     this.supportBundle = new SupportBundle({
-      platform: { isMobile, getUserAgent },
+      platform: { isMobile, getPlatformLabel: getPlatLabel },
       auth: this.authService,
       ringBuffer: this.ringBuffer,
       settings: this.settings,

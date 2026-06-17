@@ -21,7 +21,7 @@ export const DEFAULT_SKIP_STATUSES: readonly number[] = [401] as const;
 
 /**
  * Minimum delay (ms) for 429 Too Many Requests — matches the observed server
- * quota window of 10 s. Ensures at least one retry falls outside the window.
+ * quota window of 10 s. Ensures at least one retry falls outside the window.
  */
 export const MIN_429_DELAY_MS = 10_000;
 // END_BLOCK_CONSTANTS
@@ -42,7 +42,7 @@ function getStatus(err: unknown): number | undefined {
 // END_BLOCK_TYPES
 
 // START_CONTRACT: withRetry
-// PURPOSE: wrap an Observable with N retries + exponential backoff (full jitter: random 0..base*2^attempt); bail immediately on skipStatuses. For 429 Too Many Requests the delay has a 10 s floor (MIN_429_DELAY_MS) to respect the server quota window.
+// PURPOSE: wrap an Observable with N retries + exponential backoff (full jitter: random 0..base*2^attempt); bail immediately on skipStatuses. For 429 Too Many Requests the delay has a 10 s floor (MIN_429_DELAY_MS) to respect the server quota window.
 // INPUTS: observable: Observable<T>, retries: number (≥0), delayMs: number (≥0) — base delay for exponential backoff, skipStatuses?: number[]
 // OUTPUTS: Observable<T> — emits the same values; retries up to N times on transient errors
 // SIDE_EFFECTS: writes retry-attempt debug log via console.debug
@@ -82,7 +82,6 @@ export function withRetry<T>(
           const minDelay = status === 429 ? MIN_429_DELAY_MS : 0;
           const clamped = Math.max(base, minDelay);
           const jittered = Math.random() * clamped;
-          // eslint-disable-next-line no-console
           console.debug({
             ts: new Date().toISOString(),
             level: "debug",

@@ -9,23 +9,51 @@
 // START_MODULE_MAP
 // isMobile - returns true on Obsidian Mobile (delegates to Platform.isMobile)
 // getAdaptiveConcurrency - returns adaptive concurrency based on network + CPU (copied from draft)
-// getUserAgent - returns navigator.userAgent for support-bundle (UC-019)
+// getPlatformLabel - returns human-readable platform string via Obsidian Platform API (UC-019)
+// getDeviceInfo - returns structured DeviceInfo dict for Logs API (UC-018)
 // END_MODULE_MAP
 
 import { Platform } from "obsidian";
 
+// ── public types ──────────────────────────────────────────────
+
+export interface DeviceInfo {
+  platform: "web" | "ios" | "android";
+  isVirtual: false;
+  operatingSystem: "ios" | "android" | "mac" | "windows" | "linux" | "unknown";
+  osVersion: string;
+  webViewVersion: string;
+  model: string;
+  manufacturer: string;
+}
+
 // START_BLOCK_INTERNAL_LOG
+// START_BLOCK_PROCESS_VERSIONS
 /**
- * Lightweight structured logger. Emits a single console.info call so tests can
- * spy on it and assert required markers from `verification-plan.xml`.
+ * Safely read Electron process.versions (available in Obsidian Desktop).
+ * On mobile / headless tests these fields are absent — return "".
  */
+function readProcessVersions(): { osVersion: string; webViewVersion: string } {
+  try {
+    const pv = (globalThis as unknown as {
+      process?: { versions?: Record<string, string> };
+    }).process?.versions;
+    if (pv) {
+      return {
+        osVersion: pv.electron ?? "",
+        webViewVersion: pv.chrome ?? "",
+      };
+    }
+  } catch { /* node-free env (mobile, non-Electron tests) */ }
+  return { osVersion: "", webViewVersion: "" };
+}
+// END_BLOCK_PROCESS_VERSIONS
 function logInfo(
   anchor: string,
   event: string,
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "info",
@@ -62,7 +90,7 @@ export function isMobile(): boolean {
 // LINKS: UC-009, V-M-PLATFORM
 // END_CONTRACT: getAdaptiveConcurrency
 export function getAdaptiveConcurrency(): number {
-  const conn = (navigator as any).connection;
+  const conn = (navigator as unknown as { connection?: { effectiveType?: string } }).connection;
   const effectiveType = conn?.effectiveType as string | undefined;
 
   const networkLimitMap: Record<string, number> = {
@@ -81,20 +109,78 @@ export function getAdaptiveConcurrency(): number {
   return Math.min(networkLimit, cpuLimit, hardCap);
 }
 
-// START_CONTRACT: getUserAgent
-// PURPOSE: return navigator.userAgent for support-bundle assembly
+// START_CONTRACT: getPlatformLabel
+// PURPOSE: return a human-readable platform label via Obsidian Platform API (no navigator)
 // INPUTS: none
-// OUTPUTS: string — empty string when navigator is unavailable (non-browser env)
+// OUTPUTS: string — "Obsidian Desktop (MacOS)" / "Obsidian Mobile (iOS)" / "Obsidian"
 // SIDE_EFFECTS: none
 // LINKS: UC-019, V-M-PLATFORM
-// END_CONTRACT: getUserAgent
-export function getUserAgent(): string {
-  if (typeof navigator === "undefined" || typeof navigator.userAgent !== "string") {
-    return "";
+// END_CONTRACT: getPlatformLabel
+export function getPlatformLabel(): string {
+  if (Platform.isDesktopApp) {
+    const os = Platform.isMacOS ? "MacOS" : Platform.isWin ? "Windows" : Platform.isLinux ? "Linux" : "Desktop";
+    return `Obsidian Desktop (${os})`;
   }
-  return navigator.userAgent;
+  if (Platform.isMobileApp) {
+    const os = Platform.isIosApp ? "iOS" : Platform.isAndroidApp ? "Android" : "Mobile";
+    return `Obsidian Mobile (${os})`;
+  }
+  return "Obsidian";
+}
+
+// START_CONTRACT: getDeviceInfo
+// PURPOSE: assemble structured device info for Logs API, backed by Platform.* flags (no user-agent parsing)
+// INPUTS: none
+// OUTPUTS: DeviceInfo — platform / operatingSystem / model / manufacturer / osVersion / webViewVersion
+// SIDE_EFFECTS: none
+// LINKS: UC-018, V-M-PLATFORM
+// END_CONTRACT: getDeviceInfo
+export function getDeviceInfo(): DeviceInfo {
+  const mobile = Boolean(Platform.isMobile);
+
+  let operatingSystem: DeviceInfo["operatingSystem"] = "unknown";
+  let model = "unknown";
+  let manufacturer = "unknown";
+
+  if (Platform.isIosApp) {
+    operatingSystem = "ios";
+    model = Platform.isMobile ? "iPhone" : "iPad";
+    manufacturer = "Apple";
+  } else if (Platform.isAndroidApp) {
+    operatingSystem = "android";
+    manufacturer = "unknown";
+  } else if (Platform.isMacOS) {
+    operatingSystem = "mac";
+    model = "Mac";
+    manufacturer = "Apple";
+  } else if (Platform.isWin) {
+    operatingSystem = "windows";
+    model = "PC";
+    manufacturer = "Microsoft";
+  } else if (Platform.isLinux) {
+    operatingSystem = "linux";
+    model = "PC";
+  }
+
+  const platform: DeviceInfo["platform"] = mobile
+    ? (operatingSystem === "ios" ? "ios" : "android")
+    : "web";
+
+  const { osVersion, webViewVersion } = readProcessVersions();
+
+  return {
+    platform,
+    isVirtual: false,
+    operatingSystem,
+    osVersion,
+    webViewVersion,
+    model,
+    manufacturer,
+  };
 }
 
 // START_CHANGE_SUMMARY
 // LAST_CHANGE: 2026-05-13 — initial implementation per Phase 1
+// LAST_CHANGE: 2026-06-17 — getUserAgent → getPlatformLabel + getDeviceInfo; parseOSFromUA eliminated (review compliance)
+// LAST_CHANGE: 2026-06-17 — getDeviceInfo: populate osVersion/webViewVersion from process.versions (Electron) instead of hardcoded ""
 // END_CHANGE_SUMMARY

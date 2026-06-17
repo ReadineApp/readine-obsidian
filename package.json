@@ -1,6 +1,6 @@
 {
   "name": "readine-sync",
-  "version": "26.0616.1316",
+  "version": "26.0617.1078",
   "description": "One-way sync of Readine articles into Obsidian vault.",
   "main": "main.js",
   "scripts": {

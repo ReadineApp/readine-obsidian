@@ -68,7 +68,8 @@ export interface AuthSourceLike {
 }
 
 export interface PlatformLike {
-  getUserAgent(): string;
+  getPlatformLabel(): string;
+  getDeviceInfo(): import("../platform/platform").DeviceInfo;
   isMobile?(): boolean;
 }
 
@@ -98,7 +99,7 @@ export interface LogsUploadPayload {
   messages: ErrorMsgForSend[];
 }
 
-export type OperatingSystem = 'ios' | 'android' | 'windows' | 'mac' | 'unknown';
+export type OperatingSystem = 'ios' | 'android' | 'windows' | 'mac' | 'linux' | 'unknown';
 export interface DeviceInfo {
   /**
    * The name of the device. For example, "John's iPhone".
@@ -187,7 +188,6 @@ function logInfo(
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.debug({
     ts: new Date().toISOString(),
     level: "debug",
@@ -206,7 +206,6 @@ function logWarn(
   belief: string,
   details: Record<string, unknown> = {},
 ): void {
-  // eslint-disable-next-line no-console
   console.warn({
     ts: new Date().toISOString(),
     level: "warn",
@@ -233,78 +232,20 @@ export function genRequestId(): string {
 }
 
 /**
- * Assemble the device-info dictionary. The Logs API uses these fields for
- * platform-level aggregation (mobile-vs-desktop error rates, OS string).
+ * Assemble the device-info dictionary. Delegates to M-PLATFORM.getDeviceInfo
+ * which uses Obsidian Platform.* flags — no user-agent parsing.
  */
 export function getDeviceInfo(platform: PlatformLike): DeviceInfo {
-  const ua = platform.getUserAgent();
+  const di = platform.getDeviceInfo();
   const mobile = typeof platform.isMobile === "function" ? platform.isMobile() : false;
-  const osInfo = parseOSFromUA(ua);
   return {
-    platform: mobile ? (osInfo.ios ? "ios" : osInfo.android ? "android" : "web") : "web",
+    platform: mobile ? (di.operatingSystem === "ios" ? "ios" : "android") : "web",
     isVirtual: false,
-    operatingSystem: osInfo.os,
-    osVersion: osInfo.version,
-    webViewVersion: osInfo.webView,
-    model: osInfo.model || "unknown",
-    manufacturer: osInfo.manufacturer || "unknown",
-  };
-}
-
-function parseOSFromUA(ua: string): {
-  ios: boolean;
-  android: boolean;
-  os: OperatingSystem;
-  version: string;
-  webView: string;
-  model: string;
-  manufacturer: string;
-} {
-  const iosMatch = ua.match(/iPhone OS (\d+[_\d]*)/);
-  const iosModel = /(iPhone|iPad|iPod)/.exec(ua);
-  const androidMatch = ua.match(/Android (\d+[\.\d]*)/);
-  const androidModel = /Android \d[\.\d]*; ([^;)]+)/.exec(ua);
-  const macMatch = ua.match(/Mac OS X (\d+[_\d]*)/);
-  const webViewMatch = ua.match(/AppleWebKit\/(\S+)/);
-  const winMatch = ua.match(/Windows NT (\d+[\.\d]*)/);
-  if (iosMatch) {
-    return {
-      ios: true, android: false, os: "ios",
-      version: iosMatch[1]?.replace(/_/g, ".") ?? "",
-      webView: webViewMatch?.[1] ?? "",
-      model: iosModel?.[1] ?? "iPhone",
-      manufacturer: "Apple",
-    };
-  }
-  if (androidMatch) {
-    const chromeVer = ua.match(/Chrome\/(\S+)/);
-    return {
-      ios: false, android: true, os: "android",
-      version: androidMatch[1] ?? "",
-      webView: chromeVer?.[1] ?? "",
-      model: androidModel?.[1]?.trim() ?? "unknown",
-      manufacturer: "unknown",
-    };
-  }
-  if (macMatch) {
-    return {
-      ios: false, android: false, os: "mac",
-      version: macMatch[1]?.replace(/_/g, ".") ?? "",
-      webView: webViewMatch?.[1] ?? "",
-      model: "Mac",
-      manufacturer: "Apple",
-    };
-  }
-  if (winMatch) {
-    return {
-      ios: false, android: false, os: "windows",
-      version: winMatch[1] ?? "", webView: "",
-      model: "PC", manufacturer: "Microsoft",
-    };
-  }
-  return {
-    ios: false, android: false, os: "unknown",
-    version: "", webView: "", model: "unknown", manufacturer: "unknown",
+    operatingSystem: di.operatingSystem,
+    osVersion: di.osVersion,
+    webViewVersion: di.webViewVersion,
+    model: di.model,
+    manufacturer: di.manufacturer,
   };
 }
 
@@ -319,6 +260,15 @@ export function stringToBase64(input: string): string {
     if (buf && typeof buf.from === "function") {
       return buf.from(input, "utf-8").toString("base64");
     }
+    console.warn({
+      ts: new Date().toISOString(),
+      level: "warn",
+      anchor: "stringToBase64",
+      module: "M-ERROR-SENDER",
+      requirement: "UC-018",
+      event: "BASE64_BUFFER_MISSING",
+      belief: "Buffer not available in this runtime; falling back to btoa",
+    });
   }
   if (typeof btoa === "function") {
     // btoa wants binary string — escape non-ASCII to keep parity with Buffer.
